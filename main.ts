@@ -129,7 +129,11 @@ const O = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 for (const id of readdirSync(I).sort()) {
   let r: { out: Uint8Array; code: number };
   try {
-    r = run(new Uint8Array(readFileSync(join(I, id, 'program.bin'))), new Uint8Array(readFileSync(join(I, id, 'input.bin'))));
+    // A missing input.bin is empty input (IN then yields -1, as in vm.mjs);
+    // only a missing program.bin traps 9.
+    let inp = new Uint8Array(0);
+    try { inp = new Uint8Array(readFileSync(join(I, id, 'input.bin'))); } catch { /* empty input */ }
+    r = run(new Uint8Array(readFileSync(join(I, id, 'program.bin'))), inp);
   } catch {
     r = { out: new Uint8Array(0), code: 9 };
   }
